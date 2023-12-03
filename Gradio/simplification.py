@@ -5,24 +5,6 @@ import openai
 
 client = OpenAI(api_key='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')
 
-def simplify(statement):
-    completion = client.chat.completions.create(
-        model="gpt-4-1106-preview",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant.",
-            },
-            {
-                "role": "user",
-                "content": f"Simplify the following sentences: {statement}",
-            }
-        ],
-        temperature=0.5,
-        top_p=0.5,
-    )
-    return completion.choices[0].message.content
-
 def check_freq(sentence):
 
   nlp = spacy.load("en_core_web_sm")
