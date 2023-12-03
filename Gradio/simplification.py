@@ -48,11 +48,11 @@ def words_exp(sentence):
 
 def simplify_words(sentence):
   words = words_exp(sentence)
-  assis = 'Give me a new verison of sentences which replace these words in simpler synonyms or explanations:'
+  assis = 'Give me a new verison of sentences which paraphrase these words in super easy-to-understand words:'
   for word in words:
     assis += word
     assis += ', '
-  assis += 'inside sentences and only give me the new version of explained sentences. Please combine with orginal sentence meanings and keep the original meanings.'
+  assis += 'inside sentences and only give me the new version of explained sentences.'
 
   completion = client.chat.completions.create(
       model='gpt-4-1106-preview',
@@ -68,12 +68,42 @@ def simplify_words(sentence):
 
   return completion.choices[0].message.content
 
+def passive_transform(sentence):
+
+  completion = client.chat.completions.create(
+      model='gpt-4-1106-preview',
+      messages=[
+        {"role": "system",
+         "content": "Change all passive sentences into active sentences."},
+        {"role": "user",
+         "content": sentence}
+      ],
+      temperature=0.5,
+      top_p=0.5,
+  )
+
+  return completion.choices[0].message.content
+
 def simplify_structure(sentence):
   completion = client.chat.completions.create(
       model='gpt-4-1106-preview',
       messages=[
         {"role": "system",
-         "content": "Simpler sentences' structure, do not give me several points but a coherent paragraph, and not changing original sentences' meanings."},
+         "content": "Change all sentences into simple sentences without missing any important details and ensure the sentences are readable and coherent. You can break original sentences down to achieve this. Also do not increase words' complexity."},
+        {"role": "user",
+         "content": sentence}
+      ],
+      temperature=0.5,
+      top_p=0.5,
+  )
+  return completion.choices[0].message.content
+
+def simplify_phrases(sentence):
+  completion = client.chat.completions.create(
+      model='gpt-4-1106-preview',
+      messages=[
+        {"role": "system",
+         "content": "Replace compound adjectives and challenging phrases with super simple synonyms."},
         {"role": "user",
          "content": sentence}
       ],
@@ -83,11 +113,10 @@ def simplify_structure(sentence):
   return completion.choices[0].message.content
 
 def output(sentence):
-
-    tmp = simplify(sentence)
-    tmp = simplify_structure(tmp)
-    tmp = simplify_words(tmp)
-    tmp = simplify_structure(tmp)
-    tmp = simplify_words(tmp)
-
-    return tmp
+    tmp = passive_transform(sentence)
+    tmp2 = simplify_structure(tmp)
+    tmp3 = simplify_phrases(tmp2)
+    tmp4 = simplify_words(tmp3)
+    tmp5 = simplify_structure(tmp4)
+    output = simplify_words(tmp5)
+    return output
