@@ -6,6 +6,24 @@ client = OpenAI(api_key='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')
 T = 0.5
 t = 0.5
 
+def explain_sentences(statement):
+    completion = client.chat.completions.create(
+        model="gpt-4-1106-preview",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant.",
+            },
+            {
+                "role": "user",
+                "content": f"Explain the following sentences. Only give me your explanation in a paragraph. Do not involve original sentences: {statement}",
+            }
+        ],
+        temperature=0.5,
+        top_p=0.5,
+    )
+    return completion.choices[0].message.content
+  
 def check_freq(sentence):
 
   nlp = spacy.load("en_core_web_sm")
@@ -51,59 +69,38 @@ def explain_words(sentence):
 
   return completion.choices[0].message.content
 
-def add_description(sentence):
+def examples(sentence):
+    completion = client.chat.completions.create(
+      model='gpt-4-1106-preview',
+      messages=[
+        {"role": "system",
+         "content": "You are a helpful assistant."},
+        {"role": "user",
+         "content": f"Add one concise sentence of example if it has, to {sentence} for better understanding. Give me the sentences after adding this example."}
+      ],
+      temperature=0.5,
+      top_p=0.5
+    )
+    return completion.choices[0].message.content
 
+def simplify_structure(sentence):
   completion = client.chat.completions.create(
       model='gpt-4-1106-preview',
       messages=[
         {"role": "system",
-         "content": "Include more descriptive adjectives, adverbs, or modifiers to provide a clearer explanation to the following sentences, and only give me the sentence after expand."},
+         "content": "Break all sentences into simple sentences without missing any important details and ensure the sentences are readable and coherent. Also do not increase words' complexity, do not give me several points but a coherent paragraph."},
         {"role": "user",
          "content": sentence}
       ],
-      temperature=T,
-      top_p=t
+      temperature=0.5,
+      top_p=0.5,
   )
-
   return completion.choices[0].message.content
 
-def add_connectors(sentence):
-
-  completion = client.chat.completions.create(
-      model='gpt-4-1106-preview',
-      messages=[
-        {"role": "system",
-         "content": "Incorporate transitional phrases or connectors to smoothly connect ideas and expand on the following sentences."},
-        {"role": "user",
-         "content": sentence}
-      ],
-      temperature=T,
-      top_p=t
-  )
-
-  return completion.choices[0].message.content
-
-def split(sentence):
-
-  completion = client.chat.completions.create(
-      model='gpt-4-1106-preview',
-      messages=[
-        {"role": "system",
-         "content": "Simpler sentences' structure, do not give me several points but a coherent paragraph, and not changing sentence's meanings."},
-        {"role": "user",
-         "content": sentence}
-      ],
-      temperature=T,
-      top_p=t
-  )
-
-  return completion.choices[0].message.content
-
-def explanation(sentence):
-
-  tmp = add_description(sentence)
-  tmp = add_connectors(tmp)
-  tmp = split(tmp)
-  tmp = explain_words(tmp)
-
-  return tmp
+def explain(sent):
+  tmp = explain_sentences(sent)
+  tmp2 = examples(tmp)
+  tmp3 = explain_words(tmp2)
+  tmp4 = simplify_structure(tmp3)
+  result = explain_words(tmp4)
+  return result
